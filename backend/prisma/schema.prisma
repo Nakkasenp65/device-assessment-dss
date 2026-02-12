@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
+  name          String
+  role          String
+  password_hash String
+  assessments   Assessment[]
+}
+
+model Assessment {
+  id                   Int                  @id @default(autoincrement())
+  user_id              Int
+  model_id             Int
+  storage_gb           Int
+  created_at           DateTime             @default(now())
+  status               String
+  user                 User                 @relation(fields: [user_id], references: [id])
+  model                Model                @relation(fields: [model_id], references: [id])
+  feedback             AssessmentFeedback[]
+  assessmentConditions AssessmentCondition[]
+  pathScores           AssessmentPathScore[]
+}
+
+model AssessmentFeedback {
+  answer_id     Int        @id @default(autoincrement())
+  assessment_id Int
+  rate          Int
+  comment       String?
+  created_at    DateTime   @default(now())
+  assessment    Assessment @relation(fields: [assessment_id], references: [id])
+}
+
+model Brand {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  models Model[]
+}
+
+model Model {
+  id           Int          @id @default(autoincrement())
+  brand_id     Int
+  name         String
+  release_year Int
+  brand        Brand        @relation(fields: [brand_id], references: [id])
+  assessments  Assessment[]
+}
+
+model AssessmentCondition {
+  id               Int          @id @default(autoincrement())
+  assessment_id    Int
+  condition_id     Int
+  answer_option_id Int
+  value_scale      Float
+  score_ratio      Float
+  final_score      Float
+  assessment       Assessment   @relation(fields: [assessment_id], references: [id])
+  condition        Condition    @relation(fields: [condition_id], references: [id])
+  answerOption     AnswerOption @relation(fields: [answer_option_id], references: [id])
+}
+
+model AssessmentPathScore {
+  id               Int          @id @default(autoincrement())
+  assessment_id    Int
+  decision_path_id Int
+  total_score      Float
+  score_physical   Float
+  score_functional Float
+  score_age        Float
+  rank             Int
+  is_recommended   Boolean
+  assessment       Assessment   @relation(fields: [assessment_id], references: [id])
+  decisionPath     DecisionPath @relation(fields: [decision_path_id], references: [id])
+}
+
+model DecisionPath {
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  description_template String
+  weight_physical      Float
+  weight_functional    Float
+  weight_age           Float
+  icon                 String?
+  assessmentPathScores AssessmentPathScore[]
+}
+
+model ConditionCategory {
+  id         Int         @id @default(autoincrement())
+  slug       String      @unique
+  name       String
+  conditions Condition[]
+}
+
+model Condition {
+  id                   Int                   @id @default(autoincrement())
+  category_id          Int
+  answer_group_id      Int
+  name                 String
+  answer_type          String
+  impact_weight        Float
+  icon                 String?
+  category             ConditionCategory     @relation(fields: [category_id], references: [id])
+  answerGroup          AnswerGroup           @relation(fields: [answer_group_id], references: [id])
+  assessmentConditions AssessmentCondition[]
+}
+
+model AnswerGroup {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  conditions    Condition[]
+  answerOptions AnswerOption[]
+}
+
+model AnswerOption {
+  id                   Int                   @id @default(autoincrement())
+  group_id             Int
+  label                String
+  default_ratio        Float
+  order_index          Int
+  answerGroup          AnswerGroup           @relation(fields: [group_id], references: [id])
+  assessmentConditions AssessmentCondition[]
+}

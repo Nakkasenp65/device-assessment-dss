@@ -1,0 +1,7 @@
+node_modules
+dist
+npm-debug.log
+pnpm-debug.log
+.env
+speed_via_api.ts
+src/seed_via_api.ts
