@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
+  House,
   Smartphone,
   Settings,
   LogOut,
@@ -12,22 +12,17 @@ import {
   Users,
   MessageSquare,
   CheckCircle2,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { logoutAction } from "@/actions/auth";
 import { getMe } from "@/api/auth";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null,
-  );
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
 
   useEffect(() => {
     getMe()
@@ -71,40 +66,43 @@ export default function AdminLayout({
         <div className="p-6">
           <h1 className="text-2xl font-bold text-sidebar-foreground flex items-center gap-2">
             <LayoutDashboard className="w-8 h-8 text-primary fill-primary/20" />
-            Admin DSS
+            Admin Panel
           </h1>
-          {user && (
-            <p className="text-xs text-muted-foreground mt-2 px-1">
-              Welcome, {user.name}
-            </p>
-          )}
+          {user && <p className="text-xs text-muted-foreground mt-2 px-1">Welcome, {user.name}</p>}
         </div>
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                )}
-              >
-                <item.icon
+        <nav className="flex flex-col flex-1 p-4 space-y-2">
+          <div className="flex flex-col flex-1 gap-4">
+            {navItems.map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
                   className={cn(
-                    "w-5 h-5",
+                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium",
                     isActive
-                      ? "text-primary-foreground"
-                      : "text-muted-foreground group-hover:text-foreground",
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   )}
-                />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
+                >
+                  <item.icon
+                    className={cn(
+                      "w-5 h-5",
+                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground",
+                    )}
+                  />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+          <Link
+            href="/"
+            className="flex items-center bg-primary/25 text-accent-foreground  space-x-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            <House className="w-5 h-5" />
+            <span>กลับสู่หน้าหลัก</span>
+          </Link>
         </nav>
         <div className="p-4 border-t border-sidebar-border">
           <Button
@@ -119,9 +117,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-8 bg-background">
-        {children}
-      </main>
+      <main className="flex-1 overflow-y-auto p-8 bg-background">{children}</main>
     </div>
   );
 }

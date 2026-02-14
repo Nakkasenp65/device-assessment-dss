@@ -49,18 +49,20 @@ export function ConditionIconToggle({
       </div>
       <span
         className={`
-          text-xs font-medium text-center leading-tight max-w-full
+          text-xs font-medium text-center leading-tight max-w-full h-8 flex items-center justify-center
           transition-colors duration-200
           ${isActive ? "text-amber-300" : "text-zinc-500"}
         `}
       >
         {name}
       </span>
-      {isActive && (
-        <span className="text-[10px] text-amber-400/80 font-medium">
-          มีปัญหา
-        </span>
-      )}
+      <span
+        className={`text-[10px] font-medium transition-opacity duration-200 ${
+          isActive ? "text-amber-400/80 opacity-100" : "opacity-0"
+        }`}
+      >
+        มีปัญหา
+      </span>
     </button>
   );
 }

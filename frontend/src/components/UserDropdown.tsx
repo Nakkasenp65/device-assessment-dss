@@ -32,7 +32,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-white/10 hover:bg-white/10">
-          <User className="h-5 w-5 text-cyan-400" />
+          <User className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-cyan-400" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>

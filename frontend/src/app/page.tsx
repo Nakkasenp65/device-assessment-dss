@@ -17,13 +17,10 @@ import {
 import { Button } from "@/components/ui/button";
 
 export default async function Home() {
-
   return (
     <div className="bg-[#020617] text-white selection:bg-cyan-500/30 font-sans overflow-x-hidden">
-
-
       {/* Hero Section - Side by Side */}
-      <section className="relative min-h-screen pt-20 flex items-center px-6 md:px-12 lg:px-24 overflow-hidden">
+      <section className="relative min-h-screen pt-36 lg:pt-20 flex items-center px-6 md:px-12 lg:px-24 overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-900/10 via-[#020617] to-[#020617]"></div>
         <div className="absolute inset-0 z-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
@@ -114,15 +111,15 @@ export default async function Home() {
 
                 {/* Result Card (Pops up at end) */}
                 <div className="mt-auto bg-gradient-to-br from-cyan-900/50 to-blue-900/50 p-4 rounded-xl border border-cyan-500/20 animate-in slide-in-from-bottom duration-1000 fill-mode-forwards delay-[4000ms] opacity-0">
-                  <div className="text-xs text-zinc-400 mb-1">Estimated Condition</div>
-                  <div className="text-2xl font-bold text-white">Excellent</div>
+                  <div className="text-xs text-zinc-400 mb-1">การประเมินสภาพ</div>
+                  <div className="text-2xl font-bold text-white">ผลลัพธ์ดีเยี่ยม</div>
                   <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
                     <div className="bg-cyan-400 h-full w-[92%] shadow-[0_0_10px_#22d3ee]"></div>
                   </div>
                 </div>
               </div>
               {/* Scanning Beam */}
-              <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-transparent via-cyan-500/10 to-transparent border-b-2 border-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.5)] animate-scan pointer-events-none z-30"></div>
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-cyan-400/80 shadow-[0_0_15px_4px_rgba(6,182,212,0.4),0_0_40px_10px_rgba(6,182,212,0.15)] animate-scan pointer-events-none z-30" />
             </div>
 
             {/* Decorative Elements behind phone */}
