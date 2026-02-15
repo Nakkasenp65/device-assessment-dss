@@ -43,10 +43,8 @@ export default async function AboutPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-light">
-            SmartDSS
-            พัฒนาขึ้นเพื่อแก้ปัญหาความไม่ชัดเจนในการประเมินราคาสมาร์ทโฟนมือสอง
-            ด้วยการนำเทคโนโลยีและหลักการทางวิทยาศาสตร์มาใช้
-            เพื่อความเป็นธรรมสำหรับทุกคน
+            SmartDSS พัฒนาขึ้นเพื่อแก้ปัญหาความไม่ชัดเจนในการประเมินราคาสมาร์ทโฟนมือสอง
+            ด้วยการนำเทคโนโลยีและหลักการทางวิทยาศาสตร์มาใช้ เพื่อความเป็นธรรมสำหรับทุกคน
           </p>
         </div>
       </section>
@@ -61,10 +59,8 @@ export default async function AboutPage() {
                 หลักการทำงาน (How It Works)
               </h2>
               <p className="text-zinc-400 leading-relaxed text-lg">
-                ระบบใช้กระบวนการ{" "}
-                <strong>Analytic Hierarchy Process (AHP)</strong>{" "}
-                ซึ่งเป็นเครื่องมือตัดสินใจทางคณิตศาสตร์
-                ในการคำนวณน้ำหนักความสำคัญของปัจจัยต่างๆ
+                ระบบใช้กระบวนการ <strong>Analytic Hierarchy Process (AHP)</strong>{" "}
+                ซึ่งเป็นเครื่องมือตัดสินใจทางคณิตศาสตร์ ในการคำนวณน้ำหนักความสำคัญของปัจจัยต่างๆ
               </p>
               <ul className="space-y-4 pt-4">
                 <li className="flex gap-4">
@@ -72,12 +68,8 @@ export default async function AboutPage() {
                     <span className="font-bold text-cyan-400">1</span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-white mb-1">
-                      กำหนดเกณฑ์ (Criteria)
-                    </h3>
-                    <p className="text-sm text-zinc-400">
-                      แบ่งเกณฑ์เป็น สภาพภายนอก, การใช้งาน, และอายุเครื่อง
-                    </p>
+                    <h3 className="font-bold text-white mb-1">กำหนดเกณฑ์ (Criteria)</h3>
+                    <p className="text-sm text-zinc-400">แบ่งเกณฑ์เป็น สภาพภายนอก, การใช้งาน, และอายุเครื่อง</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
@@ -85,12 +77,8 @@ export default async function AboutPage() {
                     <span className="font-bold text-cyan-400">2</span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-white mb-1">
-                      เปรียบเทียบความสำคัญ (Pairwise Comparison)
-                    </h3>
-                    <p className="text-sm text-zinc-400">
-                      ผู้เชี่ยวชาญกำหนดน้ำหนักความสำคัญของแต่ละคู่ปัจจัย
-                    </p>
+                    <h3 className="font-bold text-white mb-1">เปรียบเทียบความสำคัญ (Pairwise Comparison)</h3>
+                    <p className="text-sm text-zinc-400">ผู้เชี่ยวชาญกำหนดน้ำหนักความสำคัญของแต่ละคู่ปัจจัย</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
@@ -98,12 +86,8 @@ export default async function AboutPage() {
                     <span className="font-bold text-cyan-400">3</span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-white mb-1">
-                      ประมวลผล (Synthesis)
-                    </h3>
-                    <p className="text-sm text-zinc-400">
-                      คำนวณคะแนนรวมเพื่อระบุสภาพเกรดและราคาที่เหมาะสม
-                    </p>
+                    <h3 className="font-bold text-white mb-1">ประมวลผล (Synthesis)</h3>
+                    <p className="text-sm text-zinc-400">คำนวณคะแนนรวมเพื่อระบุสภาพเกรดและราคาที่เหมาะสม</p>
                   </div>
                 </li>
               </ul>
@@ -157,7 +141,7 @@ export default async function AboutPage() {
         </div>
         <h2 className="text-3xl font-bold">ส่วนหนึ่งของโครงการวิจัย</h2>
         <p className="text-zinc-400 text-lg">
-          ระบบนี้เป็นส่วนหนึ่งของวิทยานิพนธ์ (Thesis) เพื่อการศึกษา
+          ระบบนี้เป็นส่วนหนึ่งของปริญญานิพนธ์เพื่อการศึกษา
           <br />
           มุ่งเน้นการประยุกต์ใช้ทฤษฎีการตัดสินใจเพื่อแก้ปัญหาในชีวิตจริง
         </p>
@@ -174,10 +158,7 @@ export default async function AboutPage() {
 
       {/* Footer */}
       <footer className="relative z-10 py-12 text-center text-sm text-zinc-600 border-t border-white/5 bg-[#020617]">
-        <p>
-          &copy; {new Date().getFullYear()} Smartphone Condition DSS. All rights
-          reserved.
-        </p>
+        <p>&copy; {new Date().getFullYear()} Smartphone Condition DSS. All rights reserved.</p>
       </footer>
     </div>
   );

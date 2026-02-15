@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useBrands } from "@/hooks/useBrands";
 import { useModels, useCreateModel, useDeleteModel } from "@/hooks/useModels";
 import { Button } from "@/components/ui/button";
@@ -20,13 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Smartphone,
   Plus,
@@ -36,8 +30,12 @@ import {
   Edit,
   Loader2,
   Filter,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function ModelsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -46,6 +44,7 @@ export default function ModelsPage() {
   const [releaseYear, setReleaseYear] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterBrandId, setFilterBrandId] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: brands } = useBrands();
   const { data: models, isLoading } = useModels();
@@ -87,14 +86,30 @@ export default function ModelsPage() {
     }
   };
 
-  const filteredModels = models?.filter((model: any) => {
-    const matchesSearch =
-      model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      model.brand?.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesBrand =
-      filterBrandId === "all" || model.brand_id === Number(filterBrandId);
-    return matchesSearch && matchesBrand;
-  });
+  const filteredModels = useMemo(() => {
+    return models?.filter((model: any) => {
+      const matchesSearch =
+        model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        model.brand?.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesBrand = filterBrandId === "all" || model.brand_id === Number(filterBrandId);
+      return matchesSearch && matchesBrand;
+    });
+  }, [models, searchQuery, filterBrandId]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterBrandId]);
+
+  const paginatedData = useMemo(() => {
+    if (!filteredModels) return { items: [], totalPages: 0 };
+    const totalPages = Math.ceil(filteredModels.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return {
+      items: filteredModels.slice(startIndex, endIndex),
+      totalPages,
+    };
+  }, [filteredModels, currentPage]);
 
   if (isLoading) {
     return (
@@ -111,8 +126,7 @@ export default function ModelsPage() {
         <div>
           <h1 className="text-2xl font-bold text-white">จัดการรุ่นมือถือ</h1>
           <p className="text-sm text-zinc-500 mt-1">
-            เพิ่ม, แก้ไข หรือลบรุ่นมือถือในระบบ ({filteredModels?.length || 0}{" "}
-            รายการ)
+            เพิ่ม, แก้ไข หรือลบรุ่นมือถือในระบบ ({filteredModels?.length || 0} รายการ)
           </p>
         </div>
 
@@ -132,9 +146,7 @@ export default function ModelsPage() {
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-300">
-                  แบรนด์
-                </label>
+                <label className="text-sm font-medium text-zinc-300">แบรนด์</label>
                 <Select value={brandId} onValueChange={setBrandId} required>
                   <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white focus:ring-cyan-500/50">
                     <SelectValue placeholder="เลือกแบรนด์" />
@@ -154,9 +166,7 @@ export default function ModelsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-300">
-                  ชื่อรุ่น
-                </label>
+                <label className="text-sm font-medium text-zinc-300">ชื่อรุ่น</label>
                 <Input
                   placeholder="เช่น iPhone 15 Pro, Galaxy S24"
                   value={name}
@@ -167,9 +177,7 @@ export default function ModelsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-300">
-                  ปีที่เปิดตัว
-                </label>
+                <label className="text-sm font-medium text-zinc-300">ปีที่เปิดตัว</label>
                 <Input
                   type="number"
                   placeholder="เช่น 2024"
@@ -193,12 +201,7 @@ export default function ModelsPage() {
                 <Button
                   type="submit"
                   className="bg-cyan-500 hover:bg-cyan-600 text-white"
-                  disabled={
-                    createMutation.isPending ||
-                    !name ||
-                    !brandId ||
-                    !releaseYear
-                  }
+                  disabled={createMutation.isPending || !name || !brandId || !releaseYear}
                 >
                   {createMutation.isPending ? (
                     <>
@@ -238,16 +241,12 @@ export default function ModelsPage() {
                 <span className="text-white">
                   {filterBrandId === "all"
                     ? "ทุกแบรนด์"
-                    : brands?.find((b: any) => String(b.id) === filterBrandId)
-                        ?.name || "เลือกแบรนด์"}
+                    : brands?.find((b: any) => String(b.id) === filterBrandId)?.name || "เลือกแบรนด์"}
                 </span>
               </div>
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-              <SelectItem
-                value="all"
-                className="focus:bg-zinc-800 focus:text-white cursor-pointer"
-              >
+              <SelectItem value="all" className="focus:bg-zinc-800 focus:text-white cursor-pointer">
                 ทุกแบรนด์
               </SelectItem>
               {brands?.map((brand: any) => (
@@ -265,10 +264,10 @@ export default function ModelsPage() {
       </div>
 
       {/* Models Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col">
+        <div className="overflow-x-auto flex-1 flex flex-col">
           <table className="w-full text-left text-sm">
-            <thead className="bg-zinc-950/50 text-zinc-500 font-medium uppercase text-xs">
+            <thead className="bg-zinc-950/50 text-zinc-500 font-medium uppercase text-xs sticky top-0">
               <tr>
                 <th className="px-6 py-4 w-[100px]">ID</th>
                 <th className="px-6 py-4">ชื่อรุ่น</th>
@@ -278,13 +277,10 @@ export default function ModelsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {filteredModels?.map((model: any) => (
-                <tr
-                  key={model.id}
-                  className="hover:bg-white/[0.02] transition-colors group"
-                >
+              {paginatedData.items?.map((model: any, index: number) => (
+                <tr key={model.id} className="hover:bg-white/[0.02] transition-colors group">
                   <td className="px-6 py-4 text-zinc-600 font-mono text-xs">
-                    #{model.id}
+                    #{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -299,24 +295,15 @@ export default function ModelsPage() {
                       {model.brand?.name}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-zinc-400 font-mono">
-                    {model.release_year}
-                  </td>
+                  <td className="px-6 py-4 text-zinc-400 font-mono">{model.release_year}</td>
                   <td className="px-6 py-4 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-zinc-500 hover:text-white"
-                        >
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-500 hover:text-white">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="bg-zinc-900 border-zinc-800"
-                      >
+                      <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
                         <DropdownMenuItem className="text-zinc-300 hover:text-white hover:bg-zinc-800 cursor-pointer">
                           <Edit className="w-4 h-4 mr-2" />
                           แก้ไข
@@ -333,12 +320,9 @@ export default function ModelsPage() {
                   </td>
                 </tr>
               ))}
-              {filteredModels?.length === 0 && (
+              {(!paginatedData.items || paginatedData.items.length === 0) && (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-12 text-center text-zinc-500"
-                  >
+                  <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
                     ไม่พบรายการรุ่นมือถือ
                   </td>
                 </tr>
@@ -346,6 +330,56 @@ export default function ModelsPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {paginatedData.totalPages > 0 && (
+          <div className="border-t border-zinc-800/60 bg-zinc-950/30 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-zinc-400">
+              แสดง <span className="font-semibold text-zinc-300">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> ถึง{" "}
+              <span className="font-semibold text-zinc-300">
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredModels?.length || 0)}
+              </span>{" "}
+              จาก <span className="font-semibold text-zinc-300">{filteredModels?.length || 0}</span> รายการ
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed gap-1.5"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                ก่อนหน้า
+              </Button>
+              <div className="flex items-center gap-1 px-2">
+                {Array.from({ length: paginatedData.totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-8 w-8 rounded text-xs font-medium transition-colors ${
+                      currentPage === page
+                        ? "bg-cyan-500 text-white"
+                        : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === paginatedData.totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, paginatedData.totalPages))}
+                className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed gap-1.5"
+              >
+                ถัดไป
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
