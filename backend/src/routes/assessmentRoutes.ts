@@ -6,6 +6,7 @@ import {
   getAdminDashboardStats,
   getAllAssessments,
   getAllFeedback,
+  deleteAssessment,
 } from '../controllers/assessmentController.js';
 import { authenticateToken, authorizeRole } from '../middleware/authMiddleware.js';
 
@@ -20,5 +21,6 @@ router.get('/admin/feedback', authenticateToken, authorizeRole('admin'), getAllF
 router.get('/my-assessments', authenticateToken, getUserAssessments);
 router.post('/', authenticateToken, createAssessment);
 router.get('/:id', authenticateToken, getAssessmentById);
+router.delete('/:id', authenticateToken, deleteAssessment);
 
 export default router;

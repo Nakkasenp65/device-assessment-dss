@@ -54,9 +54,9 @@ interface AgeTier {
 }
 
 const AGE_TIERS: AgeTier[] = [
-  { maxAge: 1, score: 100 }, // 0 years (current year)
-  { maxAge: 3, score: 80 }, // 1–2 years
-  { maxAge: 6, score: 50 }, // 3–5 years
+  { maxAge: 2, score: 100 }, // 0–1 years  (released this year or last year)
+  { maxAge: 4, score: 80 }, // 2–3 years
+  { maxAge: 6, score: 50 }, // 4–5 years
   { maxAge: Infinity, score: 20 }, // 6+ years
 ];
 

@@ -329,7 +329,7 @@ export default function UnifiedAssessmentPage() {
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <button
             onClick={() => router.push("/assessment/brand")}
-            className="flex items-center gap-2 px-5 py-2.5 text-zinc-400 font-medium hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            className="cursor-pointer flex items-center gap-2 px-5 py-2.5 text-zinc-400 font-medium hover:text-white transition-colors rounded-lg hover:bg-white/5"
             disabled={submitMutation.isPending}
           >
             <ArrowLeft className="w-4 h-4" />
@@ -338,7 +338,7 @@ export default function UnifiedAssessmentPage() {
           <button
             onClick={handleSubmit}
             disabled={submitMutation.isPending}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold shadow-lg shadow-cyan-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold shadow-lg shadow-cyan-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitMutation.isPending ? (
               <>

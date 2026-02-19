@@ -17,10 +17,12 @@ import {
   RefreshCw,
   Lightbulb,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
 import { FeedbackForm } from "@/components/assessment/FeedbackForm";
 import { DynamicIcon } from "@/components/DynamicIcon";
 import { getRecommendationReason } from "@/utils/dssLogic";
+import { deleteAssessment } from "@/api/assessments";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -179,6 +181,23 @@ export default function AssessmentResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"physical" | "functional">("physical");
+
+  const handleDelete = async () => {
+    if (!assessment) return;
+    if (!confirm("ต้องการลบผลการประเมินนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+    setDeleting(true);
+    try {
+      await deleteAssessment(assessment.id);
+      reset();
+      router.push("/");
+    } catch (err) {
+      console.error("Failed to delete assessment", err);
+      alert("ไม่สามารถลบผลการประเมินได้ กรุณาลองใหม่");
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) {
@@ -318,7 +337,7 @@ export default function AssessmentResultPage() {
                   <div className="flex items-center gap-4 mt-5">
                     <button
                       onClick={() => setShowDetails(!showDetails)}
-                      className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1"
+                      className="cursor-pointer text-sm text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1"
                     >
                       {showDetails ? "ซ่อนรายละเอียด" : "ดูรายละเอียดคะแนนแต่ละหัวข้อ"}
                       <ChevronRight className={`w-4 h-4 transition-transform ${showDetails ? "rotate-90" : ""}`} />
@@ -335,67 +354,97 @@ export default function AssessmentResultPage() {
                 </div>
               </div>
 
-              {/* ── Condition Details (inline, right below button) ──── */}
+              {/* ── Condition Details (tabbed) ──── */}
               {showDetails && (
-                <div className="mt-6 pt-6 border-t border-white/5 space-y-4 animate-in slide-in-from-top-2 duration-300">
-                  {physicalConditions.length > 0 && (
-                    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
-                      <div className="px-5 py-3 border-b border-white/5 flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-cyan-400" />
-                        <span className="text-sm font-semibold text-white">สภาพกายภาพ</span>
-                        <span className="text-[10px] text-zinc-600 ml-auto">คะแนนหักตามข้อบกพร่อง</span>
-                      </div>
-                      <div className="divide-y divide-white/5">
-                        {physicalConditions.map((ac) => (
-                          <div key={ac.id} className="px-5 py-3 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {ac.condition.icon && (
-                                <DynamicIcon name={ac.condition.icon} className="w-4 h-4 text-zinc-500" />
-                              )}
-                              <span className="text-sm text-white">{ac.condition.name}</span>
-                              <span className="text-xs text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded">
-                                {ac.answerOption?.label || "N/A"}
-                              </span>
-                            </div>
-                            <span className="text-sm text-red-400/70 tabular-nums">-{ac.final_score.toFixed(1)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div className="mt-6 pt-6 border-t border-white/5 animate-in slide-in-from-top-2 duration-300">
+                  {/* Tabs */}
+                  <div className="flex gap-1 mb-4 p-1 rounded-lg bg-white/[0.03]">
+                    <button
+                      onClick={() => setActiveTab("physical")}
+                      className={`cursor-pointer flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                        activeTab === "physical"
+                          ? "bg-white/10 text-white shadow-sm"
+                          : "text-zinc-500 hover:text-zinc-300"
+                      }`}
+                    >
+                      <Shield className="w-3.5 h-3.5" />
+                      สภาพกายภาพ
+                      <span
+                        className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded-full ${activeTab === "physical" ? "bg-cyan-500/15 text-cyan-400" : "bg-white/5 text-zinc-600"}`}
+                      >
+                        {physicalConditions.length}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("functional")}
+                      className={`cursor-pointer flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                        activeTab === "functional"
+                          ? "bg-white/10 text-white shadow-sm"
+                          : "text-zinc-500 hover:text-zinc-300"
+                      }`}
+                    >
+                      <Cpu className="w-3.5 h-3.5" />
+                      การทำงาน
+                      <span
+                        className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded-full ${activeTab === "functional" ? "bg-purple-500/15 text-purple-400" : "bg-white/5 text-zinc-600"}`}
+                      >
+                        {functionalConditions.length}
+                      </span>
+                    </button>
+                  </div>
 
-                  {functionalConditions.length > 0 && (
-                    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
-                      <div className="px-5 py-3 border-b border-white/5 flex items-center gap-2">
-                        <Cpu className="w-4 h-4 text-purple-400" />
-                        <span className="text-sm font-semibold text-white">การทำงานของเครื่อง</span>
-                        <span className="text-[10px] text-zinc-600 ml-auto">คะแนนหักตามข้อบกพร่อง</span>
+                  {/* Tab Content */}
+                  <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+                    <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {activeTab === "physical" ? (
+                          <Shield className="w-4 h-4 text-cyan-400" />
+                        ) : (
+                          <Cpu className="w-4 h-4 text-purple-400" />
+                        )}
+                        <span className="text-sm font-semibold text-white">
+                          {activeTab === "physical" ? "สภาพกายภาพ" : "การทำงานของเครื่อง"}
+                        </span>
                       </div>
-                      <div className="divide-y divide-white/5">
-                        {functionalConditions.map((ac) => (
-                          <div key={ac.id} className="px-5 py-3 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-zinc-600">คะแนนหักตามข้อบกพร่อง</span>
+                    </div>
+                    <div className="h-[240px] overflow-y-auto divide-y divide-white/5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                      {(activeTab === "physical" ? physicalConditions : functionalConditions).length > 0 ? (
+                        (activeTab === "physical" ? physicalConditions : functionalConditions).map((ac) => (
+                          <div
+                            key={ac.id}
+                            className="px-5 py-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
                               {ac.condition.icon && (
-                                <DynamicIcon name={ac.condition.icon} className="w-4 h-4 text-zinc-500" />
+                                <DynamicIcon name={ac.condition.icon} className="w-4 h-4 text-zinc-500 shrink-0" />
                               )}
-                              <span className="text-sm text-white">{ac.condition.name}</span>
-                              <span className="text-xs text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded">
+                              <span className="text-sm text-white truncate">{ac.condition.name}</span>
+                              <span className="text-[11px] text-zinc-500 bg-white/5 px-2 py-0.5 rounded shrink-0">
                                 {ac.answerOption?.label || "N/A"}
                               </span>
                             </div>
-                            <span className="text-sm text-red-400/70 tabular-nums">-{ac.final_score.toFixed(1)}</span>
+                            <span
+                              className={`text-sm tabular-nums shrink-0 ml-3 ${ac.final_score > 0 ? "text-red-400/70" : "text-emerald-400/70"}`}
+                            >
+                              {ac.final_score > 0 ? `-${ac.final_score.toFixed(1)}` : "0.0"}
+                            </span>
                           </div>
-                        ))}
-                      </div>
+                        ))
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-sm text-zinc-600">
+                          ไม่มีข้อมูลในหมวดนี้
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
           )}
 
           {/* ── Score Overview Card ──────────────────────────────────────── */}
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 md:p-8">
+          <div className=" rounded-2xl border border-white/10 bg-white/[0.02] p-6 md:p-8">
             {/* Header row */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -412,7 +461,7 @@ export default function AssessmentResultPage() {
                 </div>
               </div>
               <div
-                className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                className={` px-3 py-1 rounded-full text-xs font-semibold border ${
                   totalScore >= 80
                     ? "bg-emerald-500/5 border-emerald-500/15 text-emerald-400/80"
                     : totalScore >= 60
@@ -427,7 +476,7 @@ export default function AssessmentResultPage() {
             </div>
 
             {/* Score ring + bars */}
-            <div className="flex flex-col sm:flex-row items-center gap-8">
+            <div className=" flex flex-col sm:flex-row items-center gap-8">
               <ScoreRing score={totalScore} />
               <div className="flex-1 w-full space-y-4">
                 <ScoreBar label="สภาพตัวเครื่อง" score={physicalScore} icon={<Shield className="w-4 h-4" />} />
@@ -500,16 +549,24 @@ export default function AssessmentResultPage() {
 
       {/* ─── Footer Disclaimer + Actions ───────────────────────────────── */}
       <div className="pt-10 pb-8 space-y-6">
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
           <button
             onClick={() => {
               reset();
               router.push("/assessment/brand");
             }}
-            className="cursor-pointer px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold shadow-lg shadow-cyan-900/20 transition-all flex items-center gap-2"
+            className="cursor-pointer flex-1 max-w-[220px] py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold shadow-lg shadow-cyan-900/20 transition-all flex items-center justify-center gap-2 text-sm"
           >
             <RefreshCw className="w-4 h-4" />
             ประเมินเครื่องใหม่
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="cursor-pointer flex-1 max-w-[220px] py-3 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 hover:text-red-300 hover:border-red-500/30 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Trash2 className="w-4 h-4" />
+            {deleting ? "กำลังลบ..." : "ลบผลการประเมินนี้"}
           </button>
         </div>
 

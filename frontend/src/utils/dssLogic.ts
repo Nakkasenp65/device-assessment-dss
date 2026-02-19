@@ -1,7 +1,8 @@
 // ─── DSS Reasoning Logic ────────────────────────────────────────────────────
-// Generates "Reason for Recommendation" text based purely on the mathematical
-// relationship between user scores and path weights. Does NOT check path names
-// so admins can freely rename/add paths.
+// Generates "Reason for Recommendation" text using TWO inputs:
+//   1. Path weights  → what this decision path VALUES (its criteria)
+//   2. User scores   → how well the device PERFORMS in each category
+// Does NOT check path names so admins can freely rename/add paths.
 
 interface PathWeights {
   weight_physical: number;
@@ -15,50 +16,103 @@ interface UserScores {
   age: number;
 }
 
+type Factor = "physical" | "functional" | "age";
+
+const FACTOR_LABELS: Record<Factor, string> = {
+  physical: "สภาพภายนอก",
+  functional: "การทำงานของระบบ",
+  age: "อายุและความทันสมัยของรุ่น",
+};
+
+/** Sort factors by value descending, returning the ordered factor keys. */
+function rankFactors(values: Record<Factor, number>): Factor[] {
+  return (Object.keys(values) as Factor[]).sort((a, b) => values[b] - values[a]);
+}
+
+function getScoreTier(score: number): "high" | "mid" | "low" {
+  if (score >= 75) return "high";
+  if (score >= 40) return "mid";
+  return "low";
+}
+
 /**
- * Determines the dominant factor of a winning path and generates
- * a Thai-language reasoning text explaining the recommendation.
+ * Determines why a path was recommended by combining:
+ *   - What the path prioritizes (weights)
+ *   - How well the device performs (scores)
  */
-export function getRecommendationReason(
-  winningPath: PathWeights,
-  scores: UserScores,
-): string {
+export function getRecommendationReason(winningPath: PathWeights, scores: UserScores): string {
   const { weight_physical, weight_functional, weight_age } = winningPath;
 
-  // ─── Step 0: Check for balanced weights ──────────────────────────────
-  const weights = [weight_physical, weight_functional, weight_age];
-  const maxWeight = Math.max(...weights);
-  const minWeight = Math.min(...weights);
+  const weightMap: Record<Factor, number> = {
+    physical: weight_physical,
+    functional: weight_functional,
+    age: weight_age,
+  };
 
-  const isBalanced = maxWeight <= 0.5 || maxWeight - minWeight < 0.1;
+  const scoreMap: Record<Factor, number> = {
+    physical: scores.physical,
+    functional: scores.functional,
+    age: scores.age,
+  };
 
+  const rankedWeights = rankFactors(weightMap);
+  const rankedScores = rankFactors(scoreMap);
+
+  const topWeight = rankedWeights[0];
+  const secondWeight = rankedWeights[1];
+  const topScore = rankedScores[0];
+
+  const weights = Object.values(weightMap);
+  const maxW = Math.max(...weights);
+  const minW = Math.min(...weights);
+
+  // ─── Case 1: Balanced weights — path values everything equally ────────
+  const isBalanced = maxW - minW < 0.15;
   if (isBalanced) {
-    return "ทางเลือกนี้พิจารณาทุกปัจจัย (สภาพ, การใช้งาน, อายุ) อย่างสมดุล และคะแนนเฉลี่ยโดยรวมของคุณอยู่ในระดับที่ดีและเหมาะสมที่สุดสำหรับเกณฑ์นี้";
+    const tier = getScoreTier(scores[topScore]);
+    if (tier === "high") {
+      return `ทางเลือกนี้พิจารณาทุกปัจจัยอย่างสมดุล และเครื่องของคุณทำคะแนนได้ดีในทุกด้าน โดยเฉพาะด้าน${FACTOR_LABELS[topScore]}ที่โดดเด่น จึงเป็นทางเลือกที่เหมาะสมที่สุด`;
+    }
+    if (tier === "mid") {
+      return `ทางเลือกนี้พิจารณาทุกปัจจัยอย่างสมดุล คะแนนรวมของเครื่องคุณอยู่ในระดับที่ยอมรับได้ จึงเหมาะสมที่สุดสำหรับเกณฑ์การประเมินแบบรอบด้านนี้`;
+    }
+    return `ทางเลือกนี้พิจารณาทุกปัจจัยอย่างสมดุล แม้คะแนนบางด้านจะต่ำ แต่ไม่มีทางเลือกอื่นที่ได้คะแนนรวมสูงกว่า จึงเป็นทางเลือกที่ดีที่สุดในตอนนี้`;
   }
 
-  // ─── Step 1: Find the path's dominant factor ─────────────────────────
-  if (weight_physical >= weight_functional && weight_physical >= weight_age) {
-    // Case A: Path prioritizes PHYSICAL
-    if (scores.physical > 75) {
-      return "ทางเลือกนี้ให้ความสำคัญกับ สภาพภายนอก เป็นหลัก ซึ่งสอดคล้องกับจุดเด่นของเครื่องคุณที่ดูแลรักษามาอย่างดีเยี่ยม จึงทำให้ได้คะแนนประเมินสูงที่สุดในทางเลือกนี้";
-    }
-    if (scores.physical >= 40) {
-      return "ทางเลือกนี้พิจารณา สภาพภายนอก เป็นปัจจัยสำคัญ ซึ่งสภาพเครื่องของคุณอยู่ในเกณฑ์มาตรฐานที่ทางเลือกนี้ยอมรับได้ เมื่อรวมกับปัจจัยอื่นจึงเป็นทางเลือกที่เหมาะสมที่สุด";
-    }
-    return "แม้ทางเลือกนี้จะเน้นเรื่องสภาพภายนอก แต่ด้วยคะแนนด้านอื่น (การใช้งาน/อายุเครื่อง) ที่โดดเด่นของคุณ ช่วยชดเชยให้คะแนนรวมยังคงสูงพอที่จะแนะนำทางเลือกนี้";
+  // ─── Case 2: Path has a dominant factor ───────────────────────────────
+  // Check if top two weights are tied (co-dominant)
+  const isCoDominant = Math.abs(weightMap[topWeight] - weightMap[secondWeight]) < 0.05;
+  const dominantLabel = FACTOR_LABELS[topWeight];
+  const secondLabel = FACTOR_LABELS[secondWeight];
+  const topScoreLabel = FACTOR_LABELS[topScore];
+
+  // Build the "path values" part
+  const pathPart = isCoDominant
+    ? `ทางเลือกนี้ให้ความสำคัญกับ${dominantLabel}และ${secondLabel}เท่าๆ กัน`
+    : `ทางเลือกนี้ให้ความสำคัญกับ${dominantLabel}เป็นหลัก`;
+
+  // Build the "device matches" part based on how scores align with weights
+  const dominantScore = scores[topWeight];
+  const dominantTier = getScoreTier(dominantScore);
+
+  // Does the user's strongest score align with what the path values?
+  const scoreAligns = topScore === topWeight || (isCoDominant && topScore === secondWeight);
+
+  if (scoreAligns && dominantTier === "high") {
+    return `${pathPart} ซึ่งสอดคล้องกับจุดเด่นของเครื่องคุณที่ได้คะแนนด้าน${topScoreLabel}สูงถึง ${Math.round(scores[topScore])}% จึงทำให้ได้คะแนนรวมสูงที่สุดในทางเลือกนี้`;
   }
 
-  if (weight_functional >= weight_physical && weight_functional >= weight_age) {
-    // Case B: Path prioritizes FUNCTIONAL
-    if (scores.functional > 75) {
-      return "ทางเลือกนี้เน้นที่ ประสิทธิภาพการใช้งาน (Functional) มากกว่ารอยขีดข่วน ซึ่งระบบภายในเครื่องของคุณยังทำงานได้สมบูรณ์มาก จึงเป็นทางเลือกที่ตอบโจทย์ที่สุด";
-    }
-    return "ทางเลือกนี้ให้ความสำคัญกับระบบการทำงาน ซึ่งเครื่องของคุณยังอยู่ในเกณฑ์ที่ยอมรับได้ หรือมีปัจจัยด้านอายุ/สภาพภายนอกมาช่วยดึงคะแนนรวมให้สูงขึ้น";
+  if (dominantTier === "high") {
+    return `${pathPart} และเครื่องของคุณทำคะแนนด้าน${dominantLabel}ได้ดีมาก (${Math.round(dominantScore)}%) จึงตรงกับเกณฑ์ที่ทางเลือกนี้ต้องการ`;
   }
 
-  // Case C: Path prioritizes AGE
-  if (scores.age > 75) {
-    return "ทางเลือกนี้ให้มูลค่ากับ ปีที่ผลิตและความทันสมัยของรุ่น เป็นหลัก ซึ่งเครื่องของคุณยังถือว่าเป็นรุ่นใหม่ เป็นที่ต้องการของตลาดในกลุ่มนี้";
+  if (dominantTier === "mid") {
+    if (scoreAligns) {
+      return `${pathPart} ซึ่งเครื่องของคุณมีคะแนนด้าน${topScoreLabel}อยู่ในเกณฑ์มาตรฐาน (${Math.round(scores[topScore])}%) เมื่อรวมกับปัจจัยอื่นจึงเป็นทางเลือกที่เหมาะสมที่สุด`;
+    }
+    return `${pathPart} แม้คะแนนด้านนี้จะอยู่ในระดับปานกลาง แต่ด้าน${topScoreLabel}ที่ได้ ${Math.round(scores[topScore])}% ช่วยเสริมให้คะแนนรวมยังสูงพอสำหรับทางเลือกนี้`;
   }
-  return "ทางเลือกนี้ตัดสินจาก ความเก่า/ใหม่ของรุ่น เป็นหลัก ซึ่งเหมาะกับเครื่องที่มีอายุการใช้งานนาน เครื่องของคุณจึงตรงกับเกณฑ์การพิจารณาของกลุ่มนี้ (เช่น เพื่อการรีไซเคิลหรืออะไหล่)";
+
+  // dominantTier === "low"
+  return `${pathPart} แม้คะแนนด้านนี้จะยังไม่สูง แต่ด้วยคะแนนด้าน${topScoreLabel} (${Math.round(scores[topScore])}%) ที่ช่วยชดเชย ทำให้คะแนนรวมยังสูงกว่าทางเลือกอื่น`;
 }

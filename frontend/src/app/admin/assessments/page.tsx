@@ -2,17 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import {
-  Smartphone,
-  CheckCircle2,
-  MoreVertical,
-  Search,
-  Filter,
-  Download,
-} from "lucide-react";
+import { Smartphone, CheckCircle2, Trash2, Search, Filter, Download } from "lucide-react";
 import { format } from "date-fns";
 import { DynamicIcon } from "@/components/DynamicIcon";
 import { Button } from "@/components/ui/button";
+import { deleteAssessment } from "@/api/assessments";
 
 interface Assessment {
   id: number;
@@ -40,6 +34,21 @@ interface Assessment {
 export default function AdminAssessmentsPage() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("ต้องการลบผลการประเมินนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+    setDeletingId(id);
+    try {
+      await deleteAssessment(id);
+      setAssessments((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      console.error("Failed to delete assessment", err);
+      alert("ไม่สามารถลบผลการประเมินได้ กรุณาลองใหม่");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -67,9 +76,7 @@ export default function AdminAssessmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">
-            ประวัติการประเมินทั้งหมด
-          </h1>
+          <h1 className="text-2xl font-bold text-white">ประวัติการประเมินทั้งหมด</h1>
           <p className="text-sm text-zinc-500 mt-1">
             รายการประเมินสภาพมือถือทั้งหมดในระบบ ({assessments.length} รายการ)
           </p>
@@ -119,62 +126,41 @@ export default function AdminAssessmentsPage() {
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {assessments.map((assessment) => (
-                <tr
-                  key={assessment.id}
-                  className="hover:bg-white/[0.02] transition-colors group"
-                >
-                  <td className="px-6 py-4 text-zinc-600 font-mono text-xs">
-                    #{assessment.id}
-                  </td>
+                <tr key={assessment.id} className="hover:bg-white/[0.02] transition-colors group">
+                  <td className="px-6 py-4 text-zinc-600 font-mono text-xs">#{assessment.id}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500 group-hover:bg-zinc-700 group-hover:text-zinc-300 transition-colors">
                         <Smartphone className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-bold text-white">
-                          {assessment.model.name}
-                        </p>
+                        <p className="font-bold text-white">{assessment.model.name}</p>
                         <p className="text-xs text-zinc-500">
-                          {assessment.storage_gb > 0
-                            ? `${assessment.storage_gb}GB`
-                            : "N/A"}{" "}
-                          • {assessment.model.brand.name}
+                          {assessment.storage_gb > 0 ? `${assessment.storage_gb}GB` : "N/A"} •{" "}
+                          {assessment.model.brand.name}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="text-zinc-300 font-medium">
-                        {assessment.user?.name || "ไม่ระบุ"}
-                      </span>
-                      <span className="text-xs text-zinc-600">
-                        {assessment.user?.email}
-                      </span>
+                      <span className="text-zinc-300 font-medium">{assessment.user?.name || "ไม่ระบุ"}</span>
+                      <span className="text-xs text-zinc-600">{assessment.user?.email}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-zinc-400">
                     <div className="flex flex-col">
-                      <span>
-                        {format(new Date(assessment.created_at), "d MMM yyyy")}
-                      </span>
+                      <span>{format(new Date(assessment.created_at), "d MMM yyyy")}</span>
                       <span className="text-xs text-zinc-600">
                         {format(new Date(assessment.created_at), "HH:mm")} น.
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    {assessment.pathScores &&
-                    assessment.pathScores[0]?.decisionPath.icon ? (
+                    {assessment.pathScores && assessment.pathScores[0]?.decisionPath.icon ? (
                       <div className="flex items-center gap-1.5 text-zinc-300">
-                        <DynamicIcon
-                          name={assessment.pathScores[0].decisionPath.icon}
-                          className="w-4 h-4"
-                        />
-                        <span className="truncate max-w-[120px]">
-                          {assessment.pathScores[0].decisionPath.name}
-                        </span>
+                        <DynamicIcon name={assessment.pathScores[0].decisionPath.icon} className="w-4 h-4" />
+                        <span className="truncate max-w-[120px]">{assessment.pathScores[0].decisionPath.name}</span>
                       </div>
                     ) : (
                       <span className="text-zinc-500">-</span>
@@ -187,18 +173,20 @@ export default function AdminAssessmentsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-zinc-500 hover:text-white transition-colors">
-                      <MoreVertical className="w-4 h-4" />
+                    <button
+                      onClick={() => handleDelete(assessment.id)}
+                      disabled={deletingId === assessment.id}
+                      className="text-zinc-500 hover:text-red-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      title="ลบผลการประเมิน"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
               ))}
               {assessments.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="px-6 py-12 text-center text-zinc-500"
-                  >
+                  <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
                     ไม่พบรายการประเมิน
                   </td>
                 </tr>

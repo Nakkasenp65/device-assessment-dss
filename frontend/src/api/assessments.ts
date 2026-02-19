@@ -8,3 +8,8 @@ export const getMyAssessments = async () => {
 export const submitAssessment = async (data: any) => {
   return api.post("/assessments", data);
 };
+
+export const deleteAssessment = async (id: number) => {
+  const res = await api.delete(`/assessments/${id}`);
+  return res.data;
+};

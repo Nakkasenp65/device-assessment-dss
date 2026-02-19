@@ -3,22 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useBrands, useBrandModels } from "@/hooks/useBrands";
 import { useAssessment } from "@/context/AssessmentContext";
-import {
-  Loader2,
-  Smartphone,
-  Cpu,
-  CheckCircle2,
-  HardDrive,
-  ArrowRight,
-} from "lucide-react";
+import { Loader2, Smartphone, Cpu, CheckCircle2, HardDrive, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Brand {
   id: number;
@@ -40,9 +27,7 @@ export default function DeviceSelectionPage() {
 
   const { data: brands = [], isLoading: loadingBrands } = useBrands();
 
-  const { data: models = [], isLoading: loadingModels } = useBrandModels(
-    state.selectedBrand?.id,
-  );
+  const { data: models = [], isLoading: loadingModels } = useBrandModels(state.selectedBrand?.id);
 
   const handleBrandChange = (brandName: string) => {
     const selected = brands.find((b: Brand) => b.name === brandName);
@@ -89,8 +74,7 @@ export default function DeviceSelectionPage() {
             เริ่มการประเมินของคุณ
           </h1>
           <p className="text-lg text-zinc-400 leading-relaxed max-w-md">
-            เลือกรายละเอียดอุปกรณ์ของคุณด้านล่าง
-            ระบบของเราจะวิเคราะห์ข้อมูลเพื่อประเมินสภาพที่แม่นยำที่สุด
+            เลือกรายละเอียดอุปกรณ์ของคุณด้านล่าง ระบบของเราจะวิเคราะห์ข้อมูลเพื่อประเมินสภาพที่แม่นยำที่สุด
           </p>
         </div>
 
@@ -101,20 +85,13 @@ export default function DeviceSelectionPage() {
               <Smartphone className="w-4 h-4 text-cyan-500" />
               แบรนด์ (Brand)
             </label>
-            <Select
-              onValueChange={handleBrandChange}
-              value={state.selectedBrand?.name || ""}
-            >
-              <SelectTrigger className="w-full bg-black/40 border-white/10 text-white h-12 rounded-xl focus:ring-cyan-500/50">
+            <Select onValueChange={handleBrandChange} value={state.selectedBrand?.name || ""}>
+              <SelectTrigger className="cursor-pointer w-full bg-black/40 border-white/10 text-white h-12 rounded-xl focus:ring-cyan-500/50">
                 <SelectValue placeholder="เลือกแบรนด์..." />
               </SelectTrigger>
               <SelectContent className="bg-[#1a1f36] border-white/10 text-white">
                 {brands.map((brand: Brand) => (
-                  <SelectItem
-                    key={brand.id}
-                    value={brand.name}
-                    className="focus:bg-cyan-500/20 focus:text-cyan-300"
-                  >
+                  <SelectItem key={brand.id} value={brand.name} className="focus:bg-cyan-500/20 focus:text-cyan-300">
                     {brand.name}
                   </SelectItem>
                 ))}
@@ -133,24 +110,16 @@ export default function DeviceSelectionPage() {
               value={state.selectedModel?.name || ""}
               disabled={!state.selectedBrand || loadingModels}
             >
-              <SelectTrigger className="w-full bg-black/40 border-white/10 text-white h-12 rounded-xl focus:ring-cyan-500/50 disabled:opacity-50">
+              <SelectTrigger className="cursor-pointer w-full bg-black/40 border-white/10 text-white h-12 rounded-xl focus:ring-cyan-500/50 disabled:opacity-50">
                 <SelectValue
                   placeholder={
-                    !state.selectedBrand
-                      ? "กรุณาเลือกแบรนด์ก่อน..."
-                      : loadingModels
-                        ? "กำลังโหลด..."
-                        : "เลือกรุ่น..."
+                    !state.selectedBrand ? "กรุณาเลือกแบรนด์ก่อน..." : loadingModels ? "กำลังโหลด..." : "เลือกรุ่น..."
                   }
                 />
               </SelectTrigger>
               <SelectContent className="bg-[#1a1f36] border-white/10 text-white max-h-[300px]">
                 {models.map((model: Model) => (
-                  <SelectItem
-                    key={model.id}
-                    value={model.name}
-                    className="focus:bg-cyan-500/20 focus:text-cyan-300"
-                  >
+                  <SelectItem key={model.id} value={model.name} className="focus:bg-cyan-500/20 focus:text-cyan-300">
                     {model.name}
                   </SelectItem>
                 ))}
@@ -171,7 +140,7 @@ export default function DeviceSelectionPage() {
                   <button
                     key={gb}
                     onClick={() => handleStorageChange(gb.toString())}
-                    className={`py-2.5 px-3 rounded-xl text-sm font-semibold transition-all border ${
+                    className={`cursor-pointer py-2.5 px-3 rounded-xl text-sm font-semibold transition-all border ${
                       isSelected
                         ? "bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-md shadow-cyan-900/20"
                         : "bg-black/40 border-white/10 text-zinc-400 hover:border-cyan-500/30 hover:text-zinc-300"
@@ -230,9 +199,7 @@ export default function DeviceSelectionPage() {
                     {state.selectedBrand.name.substring(0, 1)}
                   </div>
                 )}
-                {!state.selectedBrand && (
-                  <Smartphone className="w-12 h-12 opacity-20" />
-                )}
+                {!state.selectedBrand && <Smartphone className="w-12 h-12 opacity-20" />}
               </div>
             </div>
 
@@ -243,12 +210,8 @@ export default function DeviceSelectionPage() {
                   <CheckCircle2 className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                    แบรนด์
-                  </div>
-                  <div className="font-bold text-white text-sm">
-                    {state.selectedBrand.name}
-                  </div>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">แบรนด์</div>
+                  <div className="font-bold text-white text-sm">{state.selectedBrand.name}</div>
                 </div>
               </div>
             )}
@@ -259,12 +222,8 @@ export default function DeviceSelectionPage() {
                   <Cpu className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                    รุ่น
-                  </div>
-                  <div className="font-bold text-white text-sm">
-                    {state.selectedModel.name}
-                  </div>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">รุ่น</div>
+                  <div className="font-bold text-white text-sm">{state.selectedModel.name}</div>
                 </div>
               </div>
             )}
@@ -273,9 +232,7 @@ export default function DeviceSelectionPage() {
               <div className="absolute bottom-4 right-[-10px] bg-[#1e293b] border border-white/10 px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-right delay-200">
                 <HardDrive className="w-4 h-4 text-cyan-400" />
                 <span className="text-xs font-semibold text-white">
-                  {state.storage_gb >= 1024
-                    ? `${state.storage_gb / 1024} TB`
-                    : `${state.storage_gb} GB`}
+                  {state.storage_gb >= 1024 ? `${state.storage_gb / 1024} TB` : `${state.storage_gb} GB`}
                 </span>
               </div>
             )}

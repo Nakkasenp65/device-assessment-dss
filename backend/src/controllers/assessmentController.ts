@@ -287,6 +287,49 @@ export const getAllAssessments = async (_req: Request, res: Response): Promise<v
   }
 };
 
+// Delete assessment (owner or admin)
+export const deleteAssessment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as AuthRequest).user?.userId;
+    const role = (req as AuthRequest).user?.role;
+    const { id } = req.params;
+    const assessmentId = Number(id);
+
+    if (!userId) {
+      sendResponse(res, 401, null, 'User not authenticated');
+      return;
+    }
+
+    const assessment = await prisma.assessment.findUnique({
+      where: { id: assessmentId },
+    });
+
+    if (!assessment) {
+      sendResponse(res, 404, null, 'Assessment not found');
+      return;
+    }
+
+    // Only owner or admin can delete
+    if (assessment.user_id !== userId && role !== 'admin') {
+      sendResponse(res, 403, null, 'Unauthorized: you do not own this assessment');
+      return;
+    }
+
+    // Delete related records first (no cascade in schema)
+    await prisma.$transaction([
+      prisma.assessmentFeedback.deleteMany({ where: { assessment_id: assessmentId } }),
+      prisma.assessmentCondition.deleteMany({ where: { assessment_id: assessmentId } }),
+      prisma.assessmentPathScore.deleteMany({ where: { assessment_id: assessmentId } }),
+      prisma.assessment.delete({ where: { id: assessmentId } }),
+    ]);
+
+    sendResponse(res, 200, null, 'Assessment deleted successfully');
+  } catch (error) {
+    console.error('Error deleting assessment:', error);
+    sendResponse(res, 500, null, 'Internal server error');
+  }
+};
+
 // Get all feedback (Admin)
 export const getAllFeedback = async (_req: Request, res: Response): Promise<void> => {
   try {

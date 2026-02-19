@@ -15,10 +15,7 @@ interface FeedbackFormProps {
   };
 }
 
-export function FeedbackForm({
-  assessmentId,
-  existingFeedback,
-}: FeedbackFormProps) {
+export function FeedbackForm({ assessmentId, existingFeedback }: FeedbackFormProps) {
   const [rating, setRating] = useState(existingFeedback?.rate || 0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState(existingFeedback?.comment || "");
@@ -55,17 +52,11 @@ export function FeedbackForm({
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
               key={star}
-              className={`w-6 h-6 ${
-                star <= rating
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-zinc-600"
-              }`}
+              className={`w-6 h-6 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-zinc-600"}`}
             />
           ))}
         </div>
-        <p className="text-zinc-300 font-medium">
-          Thank you for your feedback!
-        </p>
+        <p className="text-zinc-300 font-medium">Thank you for your feedback!</p>
         {comment && <p className="text-zinc-500 text-sm italic">"{comment}"</p>}
       </div>
     );
@@ -75,18 +66,16 @@ export function FeedbackForm({
     <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <MessageSquare className="w-5 h-5 text-cyan-400" />
-        <h3 className="font-semibold text-lg text-white">
-          Rate this Assessment
-        </h3>
+        <h3 className="font-semibold text-lg text-white">Rate this Assessment</h3>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-2">
+      <div className=" flex flex-col gap-4">
+        <div className="flex gap-2 ">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
               type="button"
-              className="focus:outline-none transition-transform hover:scale-110"
+              className="cursor-pointer focus:outline-none transition-transform hover:scale-110"
               onMouseEnter={() => setHoverRating(star)}
               onMouseLeave={() => setHoverRating(0)}
               onClick={() => setRating(star)}
